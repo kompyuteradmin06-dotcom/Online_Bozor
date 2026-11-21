@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Onlayn Bozor — Tezkor Marketpleys</title>
+  <style>
+    :root {
+      --primary: #7000ff;
+      --primary-dark: #5800c9;
+      --bg: #f4f5f8;
+      --card: #ffffff;
+      --text: #1f2026;
+      --muted: #767982;
+      --border: #e5e7eb;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); padding-bottom: 80px; }
+
+    /* Header */
+    header {
+      background: var(--card);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+    }
+    .nav-container {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .search-box {
+      flex: 1;
+      min-width: 220px;
+      display: flex;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+    }
+    .search-box input:focus { border-color: var(--primary); }
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-outline { background: #f0ebff; color: var(--primary); }
+    .btn-outline:hover { background: #e3d7ff; }
+
+    /* Kategoriyalar */
+    .categories {
+      max-width: 1100px;
+      margin: 14px auto 0;
+      padding: 0 16px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+    }
+    .cat-btn {
+      background: var(--card);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .cat-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    /* Tovarlar setkasi */
+    .container {
+      max-width: 1100px;
+      margin: 18px auto;
+      padding: 0 16px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: 14px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.15s;
+    }
+    .card:hover { transform: translateY(-2px); }
+    .card img {
+      width: 100%;
+      height: 190px;
+      object-fit: cover;
+      background: #eee;
+    }
+    .card-body { padding: 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .seller-tag { font-size: 11px; color: var(--muted); }
+    .card-title { font-size: 14px; font-weight: 600; line-height: 1.3; }
+    .price { font-size: 16px; font-weight: 700; color: var(--text); margin-top: auto; padding-top: 6px; }
+    .card-footer { padding: 0 12px 12px; }
+    .card-footer .btn { width: 100%; }
+
+    /* Modal oynalar */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: var(--card);
+      width: 100%;
+      max-width: 460px;
+      border-radius: 16px;
+      padding: 20px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: var(--muted);
+    }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 13px; margin-bottom: 4px; font-weight: 600; }
+    .form-group input, .form-group select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 10px;
+    }
+    .qty-controls { display: flex; align-items: center; gap: 8px; }
+    .qty-btn {
+      width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border);
+      background: #f9fafb; cursor: pointer; font-weight: bold;
+    }
+    .total-row {
+      display: flex; justify-content: space-between; font-size: 17px; font-weight: 700;
+      margin: 14px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="nav-container">
+      <a href="#" class="logo">uzBozor</a>
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Tovar yoki do'kon qidirish..." oninput="renderProducts()" />
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline" onclick="openModal('sellerModal')">+ Tovar qo'shish</button>
+        <button class="btn btn-primary" onclick="openModal('cartModal')">Savatcha (<span id="cartCount">0</span>)</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="categories" id="categoryBar">
+    <button class="cat-btn active" onclick="selectCategory('Barchasi', this)">Barchasi</button>
+    <button class="cat-btn" onclick="selectCategory('Elektronika', this)">Elektronika</button>
+    <button class="cat-btn" onclick="selectCategory('Kiyimlar', this)">Kiyimlar</button>
+    <button class="cat-btn" onclick="selectCategory('Uy-ro‘zg‘or', this)">Uy-ro‘zg‘or</button>
+    <button class="cat-btn" onclick="selectCategory('Aksessuarlar', this)">Aksessuarlar</button>
+  </div>
+
+  <main class="container">
+    <div class="grid" id="productGrid"></div>
+  </main>
+
+  <!-- Savatcha va Buyurtma Modal -->
+  <div class="modal-backdrop" id="cartModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Savatcha va buyurtma</h3>
+        <button class="close-btn" onclick="closeModal('cartModal')">&times;</button>
+      </div>
+      <div id="cartItems"></div>
+      <div class="total-row">
+        <span>Jami:</span>
+        <span id="cartTotal">0 so'm</span>
+      </div>
+
+      <form id="orderForm" onsubmit="submitOrder(event)">
+        <div class="form-group">
+          <label>Ismingiz</label>
+          <input type="text" id="buyerName" required placeholder="Masalan: Sardor" />
+        </div>
+        <div class="form-group">
+          <label>Telefon raqamingiz</label>
+          <input type="tel" id="buyerPhone" required placeholder="+998 90 123 45 67" />
+        </div>
+        <div class="form-group">
+          <label>Yetkazib berish manzili</label>
+          <input type="text" id="buyerAddress" required placeholder="Shahar, tuman, ko'cha..." />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%">Buyurtmani Telegram orqali yuborish</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Sotuvchi Tovar Qo'shish Modal -->
+  <div class="modal-backdrop" id="sellerModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Sotuvchi kabineti: Tovar qo'shish</h3>
+        <button class="close-btn" onclick="closeModal('sellerModal')">&times;</button>
+      </div>
+      <form onsubmit="addProduct(event)">
+        <div class="form-group">
+          <label>Do'kon nomi</label>
+          <input type="text" id="pSeller" required placeholder="Masalan: Samarqand Tech" />
+        </div>
+        <div class="form-group">
+          <label>Tovar nomi</label>
+          <input type="text" id="pTitle" required placeholder="Masalan: Simsiz quloqchin Pro" />
+        </div>
+        <div class="form-group">
+          <label>Kategoriya</label>
+          <select id="pCategory">
+            <option value="Elektronika">Elektronika</option>
+            <option value="Kiyimlar">Kiyimlar</option>
+            <option value="Uy-ro‘zg‘or">Uy-ro‘zg‘or</option>
+            <option value="Aksessuarlar">Aksessuarlar</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Narxi (so'mda)</label>
+          <input type="number" id="pPrice" required placeholder="150000" />
+        </div>
+        <div class="form-group">
+          <label>Rasm havolasi (URL, ixtiyoriy)</label>
+          <input type="url" id="pImage" placeholder="https://..." />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%">Bozorga joylash</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // O'ZINGIZNING TELEGRAM USERNAME'INGIZNI SHU YERGA YOZING (@ belgisiz):
+    const ADMIN_TELEGRAM_USERNAME = "sizning_telegram_username";
+
+    const defaultProducts = [
+      { id: 1, title: "Simsiz quloqchin TWS Pro", seller: "TechStore", category: "Elektronika", price: 185000, image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=500" },
+      { id: 2, title: "Erkaklar klassik futbolkasi (100% paxta)", seller: "ModaUz", category: "Kiyimlar", price: 89000, image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500" },
+      { id: 3, title: "Elektr choynak 1.8L zanglamaydigan", seller: "UyTexnika", category: "Uy-ro‘zg‘or", price: 210000, image: "https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500" },
+      { id: 4, title: "Aqlli soat Smart Watch Series 9", seller: "GadgetMarket", category: "Aksessuarlar", price: 320000, image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=500" }
+    ];
+
+    let products = JSON.parse(localStorage.getItem("bozor_products")) || defaultProducts;
+    let cart = [];
+    let currentCategory = "Barchasi";
+
+    function formatPrice(num) {
+      return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " so'm";
+    }
+
+    function selectCategory(cat, btn) {
+      currentCategory = cat;
+      document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderProducts();
+    }
+
+    function renderProducts() {
+      const query = document.getElementById("searchInput").value.toLowerCase();
+      const grid = document.getElementById("productGrid");
+      const filtered = products.filter(p => {
+        const matchCat = currentCategory === "Barchasi" || p.category === currentCategory;
+        const matchQuery = p.title.toLowerCase().includes(query) || p.seller.toLowerCase().includes(query);
+        return matchCat && matchQuery;
+      });
+
+      grid.innerHTML = filtered.map(p => `
+        <div class="card">
+          <img src="${p.image || 'https://via.placeholder.com/400x300?text=Tovar+Rasmi'}" alt="${p.title}" />
+          <div class="card-body">
+            <span class="seller-tag">Do'kon: ${p.seller} • ${p.category}</span>
+            <div class="card-title">${p.title}</div>
+            <div class="price">${formatPrice(p.price)}</div>
+          </div>
+          <div class="card-footer">
+            <button class="btn btn-outline" onclick="addToCart(${p.id})">Savatchaga qo'shish</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function addToCart(id) {
+      const item = cart.find(i => i.id === id);
+      if (item) {
+        item.qty++;
+      } else {
+        const product = products.find(p => p.id === id);
+        cart.push({ ...product, qty: 1 });
+      }
+      updateCartUI();
+    }
+
+    function changeQty(id, delta) {
+      const item = cart.find(i => i.id === id);
+      if (!item) return;
+      item.qty += delta;
+      if (item.qty <= 0) cart = cart.filter(i => i.id !== id);
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const count = cart.reduce((sum, i) => sum + i.qty, 0);
+      const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+      document.getElementById("cartCount").innerText = count;
+      document.getElementById("cartTotal").innerText = formatPrice(total);
+
+      const container = document.getElementById("cartItems");
+      if (cart.length === 0) {
+        container.innerHTML = "<p style='color:#767982; font-size:14px;'>Savatchangiz hozircha bo'sh.</p>";
+        return;
+      }
+
+      container.innerHTML = cart.map(i => `
+        <div class="cart-item">
+          <div>
+            <div style="font-weight:600; font-size:14px;">${i.title}</div>
+            <div style="font-size:12px; color:#767982;">${formatPrice(i.price)} (${i.seller})</div>
+          </div>
+          <div class="qty-controls">
+            <button class="qty-btn" onclick="changeQty(${i.id}, -1)">-</button>
+            <span>${i.qty}</span>
+            <button class="qty-btn" onclick="changeQty(${i.id}, 1)">+</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function addProduct(e) {
+      e.preventDefault();
+      const newProduct = {
+        id: Date.now(),
+        seller: document.getElementById("pSeller").value,
+        title: document.getElementById("pTitle").value,
+        category: document.getElementById("pCategory").value,
+        price: Number(document.getElementById("pPrice").value),
+        image: document.getElementById("pImage").value || "https://via.placeholder.com/400x300?text=Yangi+Tovar"
+      };
+      products.unshift(newProduct);
+      localStorage.setItem("bozor_products", JSON.stringify(products));
+      e.target.reset();
+      closeModal("sellerModal");
+      renderProducts();
+    }
+
+    function submitOrder(e) {
+      e.preventDefault();
+      if (cart.length === 0) {
+        alert("Avval savatchaga tovar qo'shing!");
+        return;
+      }
+      const name = document.getElementById("buyerName").value;
+      const phone = document.getElementById("buyerPhone").value;
+      const address = document.getElementById("buyerAddress").value;
+      const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
+
+      let text = `🛒 YANGI BUYURTMA:\n\n`;
+      cart.forEach((i, idx) => {
+        text += `${idx + 1}. ${i.title} (${i.seller}) — ${i.qty} dona x ${formatPrice(i.price)}\n`;
+      });
+      text += `\n💰 Jami: ${formatPrice(total)}`;
+      text += `\n👤 Xaridor: ${name}`;
+      text += `\n📞 Tel: ${phone}`;
+      text += `\n📍 Manzil: ${address}`;
+
+      const url = `https://t.me/${ADMIN_TELEGRAM_USERNAME}?text=${encodeURIComponent(text)}`;
+      window.open(url, "_blank");
+    }
+
+    function openModal(id) {
+      updateCartUI();
+      document.getElementById(id).classList.add("open");
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove("open");
+    }
+
+    renderProducts();
+  </script>
+</body>
+</html>
